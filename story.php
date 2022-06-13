@@ -59,10 +59,12 @@ if($text == '/start'){
 'parse_mode' => "MarkDown", 'disable_web_page_preview' => true, 'reply_markup' => json_encode(['inline_keyboard' => [[['text' => "• اضغط هنا وتابع قناة البوت ، 🔰'", 'url' => "https://t.me/mroan1235"]], ]]) ]);
 }
 if($text != '/start' ){
- $get = json_decode(file_get_contents("https://wapis.ga/insta/getstories/$text"));
- if($get->error == 'username'){
-   bot('sendMessage',[
-  'chat_id'=>$chat_id,
+$api = file_get_contents("https://www.instagram.com/$text/?__a=1");
+            if (!empty($api) and strpos($api,"Sorry, this page isn't available.") === false){
+                $api = json_decode($api);
+                bot("SendPhoto",[
+                    "chat_id"=>$chat_id,
+                    "photo"=>$api->stories->image_url,
   'text'=>'ليس هناك أي مستخدم بهذا الأسم ❌',
   'reply_markup'=>json_encode([
     'inline_keyboard'=>[

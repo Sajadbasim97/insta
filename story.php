@@ -16,32 +16,41 @@ function bot($method, $datas = [])
     }
 }
 
-$update = json_decode(file_get_contents('php://input'));
-$message = $update->message;
-$chat_id = $message->chat->id;
-$text = $message->text;
-$chat_id2 = $update->callback_query->message->chat->id;
-$message_id = $update->callback_query->message->message_id;
-$data = $update->callback_query->data;
-$from_id = $message->from->id;
-if($text == '/start'){
-    bot('sendMessage',[
-      'chat_id'=>$chat_id,
-      'text'=>' get text or us
-- ','reply_markup'=>json_encode([
-  'inline_keyboard'=>[
-   [['text'=>'ok tv me  ،','url'=>'t.me/ss_ss']],]  ]) ]);}
-
-
-if($text != "/start"){
-$Api = json_decode(file_get_contents("https://storiesdown.com/api/stories/0051ac727b8da9ba1e8a7ae9792c549e?_username=$text"),true);
-for($i = 0; $i<count($Api['stories']); $i++){
-$photo = $Api['stories'][$i]['image_url'];
-$nm = $i +1;
-bot('sendphoto',[
-'chat_id'=>$chat_id,
-'photo'=>$photo,
-'caption'=>"🖼| صورة : $nm ",
-]);
-
+$update = json_decode(file_get_contents("php://input"));
+if (isset($update->message)) {
+    $message = $update->message;
+    $from_id = $message->from->id;
+    $chat_id = $message->chat->id;
+    $message_id = $message->message_id;
+    if (isset($message->text)) {
+        $text = $message->text;
+        if ($text == "/start") {
+            bot("sendMessage", [
+                "chat_id" => $chat_id,
+                "text" => "ارسال username الخاص بك في instagram \n\n- مثال على ذالك : *@botlua*",
+                "reply_to_message_id" => $message_id,
+                "parse_mode" => "Markdown",
+            ]);
+        } elseif(strpos($text,"@") !== false){
+            $text = str_replace("@","",$text);
+            $api = file_get_contents("https://www.instagram.com/$text/?__a=1");
+            if (!empty($api) and strpos($api,"Sorry, this page isn't available.") === false){
+                $api = json_decode($api);
+                bot("SendPhoto",[
+                    "chat_id"=>$chat_id,
+                    "photo"=>$api->graphql->user->profile_pic_url_hd,
+                    "reply_to_message_id" => $message_id,
+                    "caption"=>"- Name : `{$api->graphql->user->full_name}`\n- Bio : `{$api->graphql->user->biography}`\n- Follow : `{$api->graphql->user->edge_follow->count}`\n- Followed : `{$api->graphql->user->edge_followed_by->count}`\n- User Id : `{$api->graphql->user->id}`\n\n.",
+                    "parse_mode" => "Markdown",
+                ]);
+            }else{
+                bot("sendMessage", [
+                    "chat_id" => $chat_id,
+                    "text" =>"*~ حدث خطأ لا يوجد هاكذا مستخدم !*",
+                    "reply_to_message_id" => $message_id,
+                    "parse_mode" => "Markdown",
+                ]);
+            }
+        }
+    }
 }
